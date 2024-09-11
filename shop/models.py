@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 
 class Product(models.Model):
@@ -16,9 +17,7 @@ class Product(models.Model):
 
 class Order(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    client_name = models.CharField(max_length=100)
-    client_email = models.EmailField()
-    client_phone = models.CharField(max_length=15)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # Link to the User model
     quantity = models.IntegerField()
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     ordered_at = models.DateTimeField(auto_now_add=True)
@@ -30,7 +29,7 @@ class Order(models.Model):
     ], default='pending')
 
     def __str__(self):
-        return f"Order {self.id} - {self.client_name}"
+        return f"Order {self.id} - {self.user.username}"
 
 
 class OrderItem(models.Model):
@@ -41,3 +40,12 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {self.quantity}"
+
+class Customer(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    phone = models.CharField(max_length=15)
+    address = models.TextField()
+
+    def __str__(self):
+        return self.name

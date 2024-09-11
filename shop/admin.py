@@ -11,9 +11,9 @@ class ProductAdmin(admin.ModelAdmin):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['client_name', 'client_email', 'client_phone', 'quantity', 'total_price', 'ordered_at', 'status']
+    list_display = ['product', 'user', 'quantity', 'total_price', 'ordered_at', 'status']
     list_filter = ['ordered_at', 'status']
-    search_fields = ['client_name', 'client_email', 'client_phone']
+    search_fields = ['product', 'user']
     date_hierarchy = 'ordered_at'
 
 
