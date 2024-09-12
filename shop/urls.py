@@ -26,6 +26,7 @@ urlpatterns += [
     path('api/order/', views.api_order_create, name='api_order_create'),
     path('api/login/', views.api_login, name='api_login'),
      path('api/check-auth/', views.check_auth, name='check_auth'),
+      path('api/signup/', views.api_signup, name='api_signup'),
 ]
 
 if settings.DEBUG:

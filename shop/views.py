@@ -9,6 +9,7 @@ from django.contrib.auth import update_session_auth_hash
 from django.views.decorators.csrf import csrf_exempt
 from .models import Product, Order
 import json
+from django.contrib.auth import get_user_model
 
 # Product List View
 def product_list(request):
@@ -136,3 +137,39 @@ def api_login(request):
 @login_required
 def check_auth(request):
     return JsonResponse({'is_authenticated': True})
+
+
+# API Signup View
+@csrf_exempt
+def api_signup(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            password = data.get('password')
+            password_confirm = data.get('password_confirm')
+
+            # Check for missing fields
+            if not username or not password or not password_confirm:
+                return JsonResponse({'status': 'error', 'message': 'Missing required fields'}, status=400)
+
+            # Check password confirmation
+            if password != password_confirm:
+                return JsonResponse({'status': 'error', 'message': 'Passwords do not match'}, status=400)
+
+            # Create the user
+            User = get_user_model()
+            form = UserCreationForm({
+                'username': username,
+                'password1': password,
+                'password2': password_confirm
+            })
+            if form.is_valid():
+                form.save()
+                return JsonResponse({'status': 'success', 'message': 'User created successfully'})
+            else:
+                return JsonResponse({'status': 'error', 'message': form.errors}, status=400)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
