@@ -18,6 +18,14 @@ urlpatterns = [
  
 
 ]
+urlpatterns += [
+    path('mini-app/', views.mini_app_view, name='mini_app'),
+]
+urlpatterns += [
+    path('api/products/', views.api_product_list, name='api_product_list'),
+    path('api/order/', views.api_order_create, name='api_order_create'),
+    path('api/login/', views.api_login, name='api_login'),
+]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
