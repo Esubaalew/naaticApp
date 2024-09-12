@@ -132,3 +132,7 @@ def api_login(request):
             return JsonResponse({'status': 'error', 'message': str(e)})
     else:
         return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
+@login_required
+def check_auth(request):
+    return JsonResponse({'is_authenticated': True})

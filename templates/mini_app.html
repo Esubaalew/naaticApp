@@ -114,53 +114,57 @@
                             const productPrice = this.getAttribute('data-product-price');
                             const quantity = document.getElementById(`quantity-${productId}`).value;
 
-                            tg.MainButton.setText("Buying " + productName + " (x" + quantity + ") for $" + (productPrice * quantity));
-                            tg.MainButton.show();
+                            checkAuthentication().then(isAuthenticated => {
+                                if (isAuthenticated) {
+                                    tg.MainButton.setText("Buying " + productName + " (x" + quantity + ") for $" + (productPrice * quantity));
+                                    tg.MainButton.show();
 
-                            fetch('/api/order/', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRFToken': '{{ csrf_token }}',
-                                },
-                                body: JSON.stringify({
-                                    product_id: productId,
-                                    quantity: quantity
-                                })
-                            }).then(response => {
-                                if (response.ok) {
-                                    return response.text(); // Get raw text
-                                } else {
-                                    throw new Error('Network response was not ok.');
-                                }
-                            })
-                            .then(text => {
-                                try {
-                                    const data = JSON.parse(text);
-                                    if (data.status === 'success') {
-                                        tg.MainButton.setText("Order Successful!");
+                                    fetch('/api/order/', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRFToken': '{{ csrf_token }}',
+                                        },
+                                        body: JSON.stringify({
+                                            product_id: productId,
+                                            quantity: quantity
+                                        })
+                                    }).then(response => {
+                                        if (response.ok) {
+                                            return response.text(); // Get raw text
+                                        } else {
+                                            throw new Error('Network response was not ok.');
+                                        }
+                                    })
+                                    .then(text => {
+                                        try {
+                                            const data = JSON.parse(text);
+                                            if (data.status === 'success') {
+                                                tg.MainButton.setText("Order Successful!");
 
-                                        const orderSummary = `
-                                            <p><strong>Order ID:</strong> ${data.order_id}</p>
-                                            <p><strong>Product:</strong> ${productName}</p>
-                                            <p><strong>Quantity:</strong> ${quantity}</p>
-                                            <p><strong>Total Price:</strong> $${(productPrice * quantity)}</p>
-                                        `;
-                                        document.getElementById('order-summary').innerHTML = orderSummary;
-                                        $('#orderConfirmationModal').modal('show');
-                                    } else if (data.status === 'error' && data.message === 'User not authenticated') {
-                                        $('#loginModal').modal('show');
-                                    } else {
+                                                const orderSummary = `
+                                                    <p><strong>Order ID:</strong> ${data.order_id}</p>
+                                                    <p><strong>Product:</strong> ${productName}</p>
+                                                    <p><strong>Quantity:</strong> ${quantity}</p>
+                                                    <p><strong>Total Price:</strong> $${(productPrice * quantity)}</p>
+                                                `;
+                                                document.getElementById('order-summary').innerHTML = orderSummary;
+                                                $('#orderConfirmationModal').modal('show');
+                                            } else {
+                                                tg.MainButton.setText("Error in ordering");
+                                            }
+                                        } catch (e) {
+                                            console.error('Error parsing JSON:', e);
+                                            tg.MainButton.setText("Error in ordering");
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Fetch operation error:', error);
                                         tg.MainButton.setText("Error in ordering");
-                                    }
-                                } catch (e) {
-                                    console.error('Error parsing JSON:', e);
-                                    tg.MainButton.setText("Error in ordering");
+                                    });
+                                } else {
+                                    $('#loginModal').modal('show');
                                 }
-                            })
-                            .catch(error => {
-                                console.error('Fetch operation error:', error);
-                                tg.MainButton.setText("Error in ordering");
                             });
                         });
                     });
@@ -170,44 +174,38 @@
                 });
         }
 
-        checkAuthentication().then(isAuthenticated => {
-            if (isAuthenticated) {
-                loadProducts();
-            } else {
-                $('#loginModal').modal('show');
-            }
-        });
+        loadProducts();
 
         document.getElementById('login-form').addEventListener('submit', function (event) {
-    event.preventDefault();
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
 
-    fetch('/api/login/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}',  // Ensure CSRF token is included
-        },
-        body: JSON.stringify({
-            username: username,
-            password: password
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            $('#loginModal').modal('hide');
-            loadProducts(); // Reload products or refresh the state
-        } else {
-            document.getElementById('login-error').style.display = 'block';
-        }
-    })
-    .catch(error => {
-        console.error('Login error:', error);
-        document.getElementById('login-error').style.display = 'block';
-    });
-});
+            fetch('/api/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    $('#loginModal').modal('hide');
+                    loadProducts(); // Reload products or refresh the state
+                } else {
+                    document.getElementById('login-error').style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Login error:', error);
+                document.getElementById('login-error').style.display = 'block';
+            });
+        });
 
     </script>
 
